@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/menu.dart';
 
+/// Titik masuk aplikasi; menjalankan [MyApp] sebagai root widget.
 void main() {
   runApp(const MyApp());
 }
 
+/// Root widget aplikasi MyPortfolio Mobile.
+///
+/// Mengatur [MaterialApp] beserta tema global (skema warna indigo dengan
+/// warna sekunder amber) dan menjadikan [MyHomePage] sebagai halaman awal.
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
