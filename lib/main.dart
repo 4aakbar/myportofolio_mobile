@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myportofolio_mobile/menu.dart';
+import 'package:myportofolio_mobile/screens/menu.dart';
 
 /// Titik masuk aplikasi; menjalankan [MyApp] sebagai root widget.
 void main() {
