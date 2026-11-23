@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myportofolio_mobile/screens/education_form.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
 
 /// Model data untuk satu tombol aksi pada halaman utama.
@@ -20,13 +21,27 @@ class ItemHomepage {
 ///
 /// Kartu diberi warna latar [ItemHomepage.color]. Ketika ditekan, kartu
 /// menampilkan SnackBar berisi "Kamu telah menekan tombol [nama]!" dan,
-/// untuk tombol "Tambah Proyek", berpindah ke [ProjectFormPage].
+/// untuk tombol yang memiliki halaman tujuan, berpindah ke halaman tersebut
+/// (lihat [_destinationFor]).
 class ItemCard extends StatelessWidget {
   /// Data tombol yang ditampilkan oleh kartu ini.
   final ItemHomepage item;
 
   /// Membuat [ItemCard] dari [item].
   const ItemCard(this.item, {super.key});
+
+  /// Mengembalikan halaman tujuan untuk [name], atau `null` jika tombol
+  /// tersebut belum memiliki halaman (misalnya "Lihat Proyek" dan "Logout").
+  static Widget? _destinationFor(String name) {
+    switch (name) {
+      case "Tambah Proyek":
+        return const ProjectFormPage();
+      case "Tambah Edukasi":
+        return const EducationFormPage();
+      default:
+        return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,12 +61,11 @@ class ItemCard extends StatelessWidget {
 
           // Navigasi ke halaman yang sesuai. push() dipakai agar pengguna
           // dapat kembali ke menu dengan tombol Back.
-          if (item.name == "Tambah Proyek") {
+          final destination = _destinationFor(item.name);
+          if (destination != null) {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const ProjectFormPage(),
-              ),
+              MaterialPageRoute(builder: (context) => destination),
             );
           }
         },

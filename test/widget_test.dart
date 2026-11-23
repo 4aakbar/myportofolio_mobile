@@ -22,7 +22,7 @@ void main() {
       (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
 
-    expect(find.byType(ItemCard), findsNWidgets(3));
+    expect(find.byType(ItemCard), findsNWidgets(4));
 
     Color colorOf(String name) {
       final material = tester.widget<Material>(find.ancestor(
@@ -34,6 +34,7 @@ void main() {
 
     expect(colorOf('Lihat Proyek'), Colors.blue);
     expect(colorOf('Tambah Proyek'), Colors.green);
+    expect(colorOf('Tambah Edukasi'), Colors.orange);
     expect(colorOf('Logout'), Colors.red);
   });
 
@@ -41,8 +42,10 @@ void main() {
       (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
 
-    // "Tambah Proyek" berpindah halaman, sehingga diuji terpisah di bawah.
+    // "Tambah Proyek" dan "Tambah Edukasi" berpindah halaman, sehingga diuji terpisah di bawah.
     for (final name in ['Lihat Proyek', 'Logout']) {
+      // Kartu baris kedua bisa berada di luar layar uji, jadi digulir dulu.
+      await tester.ensureVisible(find.text(name));
       await tester.tap(find.text(name));
       await tester.pump();
 
