@@ -17,7 +17,10 @@ class _EducationFormPageState extends State<EducationFormPage> {
   /// Kunci untuk mengakses state [Form], melakukan validasi, dan reset.
   final _formKey = GlobalKey<FormState>();
 
+  String _institution = "";
   String _level = "S1"; // default
+  String _major = "";
+  String _description = "";
   DateTime? _startDate;
   DateTime? _endDate;
 
@@ -126,6 +129,43 @@ class _EducationFormPageState extends State<EducationFormPage> {
     });
   }
 
+  /// Menampilkan ringkasan seluruh isian formulir dalam [AlertDialog].
+  ///
+  /// Hanya dipanggil setelah [FormState.validate] mengembalikan `true`,
+  /// sehingga [_startDate] dan [_endDate] dijamin sudah terisi. Tombol OK
+  /// menutup dialog dan mengembalikan pengguna ke formulir.
+  void _showSummaryDialog() {
+    final description = _description.trim();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edukasi berhasil disimpan!'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Institusi: ${_institution.trim()}'),
+                Text('Jenjang: $_level'),
+                Text('Jurusan: ${_major.trim()}'),
+                Text('Tanggal Mulai: ${_formatDate(_startDate!)}'),
+                Text('Tanggal Selesai: ${_formatDate(_endDate!)}'),
+                Text('Deskripsi: ${description.isEmpty ? '-' : description}'),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   /// Dekorasi input yang seragam untuk semua field formulir.
   InputDecoration _inputDecoration(String label, {String? hint, Widget? suffix}) {
     return InputDecoration(
@@ -170,6 +210,11 @@ class _EducationFormPageState extends State<EducationFormPage> {
                     "Nama Institusi",
                     hint: "Contoh: Universitas Indonesia",
                   ),
+                  onChanged: (String? value) {
+                    setState(() {
+                      _institution = value!;
+                    });
+                  },
                   validator: (value) => _validateRequiredText(
                     value,
                     fieldName: "Nama institusi",
@@ -206,6 +251,11 @@ class _EducationFormPageState extends State<EducationFormPage> {
                     "Jurusan / Bidang Studi",
                     hint: "Contoh: Ilmu Komputer",
                   ),
+                  onChanged: (String? value) {
+                    setState(() {
+                      _major = value!;
+                    });
+                  },
                   validator: (value) => _validateRequiredText(
                     value,
                     fieldName: "Jurusan",
@@ -259,6 +309,11 @@ class _EducationFormPageState extends State<EducationFormPage> {
                     "Deskripsi (opsional)",
                     hint: "Aktivitas, prestasi, atau mata kuliah relevan",
                   ),
+                  onChanged: (String? value) {
+                    setState(() {
+                      _description = value!;
+                    });
+                  },
                   validator: _validateDescription,
                 ),
               ),
@@ -274,7 +329,11 @@ class _EducationFormPageState extends State<EducationFormPage> {
                           WidgetStateProperty.all(Colors.indigo),
                     ),
                     onPressed: () {
-                      _formKey.currentState!.validate();
+                      // Dialog ringkasan hanya tampil bila semua input valid;
+                      // jika tidak, pesan kesalahan muncul di field terkait.
+                      if (_formKey.currentState!.validate()) {
+                        _showSummaryDialog();
+                      }
                     },
                     child: const Text(
                       "Simpan",
