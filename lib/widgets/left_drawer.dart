@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:myportofolio_mobile/screens/education_form.dart';
 import 'package:myportofolio_mobile/screens/menu.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
 
 /// Drawer navigasi yang muncul dari sisi kiri layar.
 ///
 /// Berisi header informasi aplikasi serta tautan ke halaman utama
-/// ([MyHomePage]) dan halaman tambah proyek ([ProjectFormPage]).
+/// ([MyHomePage]), halaman tambah proyek ([ProjectFormPage]), dan halaman
+/// tambah edukasi ([EducationFormPage]). Drawer yang sama dipakai di semua
+/// halaman tersebut agar navigasi konsisten.
+///
+/// Setiap opsi memakai [Navigator.pushReplacement] sehingga halaman saat ini
+/// diganti dan tumpukan navigasi tidak terus bertambah.
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
 
@@ -62,6 +68,19 @@ class LeftDrawer extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) => const ProjectFormPage(),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.school_outlined),
+            title: const Text('Add Education'),
+            // Navigasi ke halaman tambah edukasi
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const EducationFormPage(),
                 ),
               );
             },
