@@ -48,6 +48,59 @@ class _EducationFormPageState extends State<EducationFormPage> {
     return '$day/$month/${date.year}';
   }
 
+  /// Batas panjang nama institusi dan jurusan.
+  static const int _maxNameLength = 100;
+
+  /// Batas panjang deskripsi.
+  static const int _maxDescriptionLength = 500;
+
+  /// Validator untuk field teks wajib dengan batas panjang [maxLength].
+  ///
+  /// Menolak nilai kosong atau yang hanya berisi spasi, serta nilai yang
+  /// melebihi [maxLength] karakter setelah spasi di awal/akhir dibuang.
+  static String? _validateRequiredText(
+    String? value, {
+    required String fieldName,
+    required int maxLength,
+  }) {
+    final trimmed = value?.trim() ?? '';
+    if (trimmed.isEmpty) {
+      return "$fieldName tidak boleh kosong!";
+    }
+    if (trimmed.length > maxLength) {
+      return "$fieldName maksimal $maxLength karakter!";
+    }
+    return null;
+  }
+
+  /// Validator tanggal mulai: wajib diisi.
+  String? _validateStartDate(String? _) {
+    if (_startDate == null) {
+      return "Pilih tanggal mulai!";
+    }
+    return null;
+  }
+
+  /// Validator tanggal selesai: wajib diisi dan tidak boleh lebih awal
+  /// dari tanggal mulai.
+  String? _validateEndDate(String? _) {
+    if (_endDate == null) {
+      return "Pilih tanggal selesai!";
+    }
+    if (_startDate != null && _endDate!.isBefore(_startDate!)) {
+      return "Tidak boleh sebelum tanggal mulai!";
+    }
+    return null;
+  }
+
+  /// Validator deskripsi: opsional, tetapi dibatasi panjangnya.
+  static String? _validateDescription(String? value) {
+    if ((value?.trim().length ?? 0) > _maxDescriptionLength) {
+      return "Deskripsi maksimal $_maxDescriptionLength karakter!";
+    }
+    return null;
+  }
+
   /// Membuka [showDatePicker] dan menyimpan tanggal terpilih ke state.
   ///
   /// [isStart] menentukan apakah tanggal yang dipilih adalah tanggal mulai
@@ -79,6 +132,9 @@ class _EducationFormPageState extends State<EducationFormPage> {
       labelText: label,
       hintText: hint ?? label,
       suffixIcon: suffix,
+      // Pesan kesalahan boleh dua baris agar tidak terpotong pada
+      // field tanggal yang lebarnya hanya setengah layar.
+      errorMaxLines: 2,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(5.0),
       ),
@@ -114,6 +170,11 @@ class _EducationFormPageState extends State<EducationFormPage> {
                     "Nama Institusi",
                     hint: "Contoh: Universitas Indonesia",
                   ),
+                  validator: (value) => _validateRequiredText(
+                    value,
+                    fieldName: "Nama institusi",
+                    maxLength: _maxNameLength,
+                  ),
                 ),
               ),
 
@@ -145,6 +206,11 @@ class _EducationFormPageState extends State<EducationFormPage> {
                     "Jurusan / Bidang Studi",
                     hint: "Contoh: Ilmu Komputer",
                   ),
+                  validator: (value) => _validateRequiredText(
+                    value,
+                    fieldName: "Jurusan",
+                    maxLength: _maxNameLength,
+                  ),
                 ),
               ),
 
@@ -163,6 +229,7 @@ class _EducationFormPageState extends State<EducationFormPage> {
                           suffix: const Icon(Icons.calendar_today),
                         ),
                         onTap: () => _pickDate(isStart: true),
+                        validator: _validateStartDate,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -176,6 +243,7 @@ class _EducationFormPageState extends State<EducationFormPage> {
                           suffix: const Icon(Icons.calendar_today),
                         ),
                         onTap: () => _pickDate(isStart: false),
+                        validator: _validateEndDate,
                       ),
                     ),
                   ],
@@ -191,6 +259,7 @@ class _EducationFormPageState extends State<EducationFormPage> {
                     "Deskripsi (opsional)",
                     hint: "Aktivitas, prestasi, atau mata kuliah relevan",
                   ),
+                  validator: _validateDescription,
                 ),
               ),
 
