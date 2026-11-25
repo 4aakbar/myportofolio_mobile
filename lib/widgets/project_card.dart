@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/screens/education_form.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
+import 'package:myportofolio_mobile/screens/project_list.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
+import 'package:myportofolio_mobile/widgets/auth_guard.dart';
+import 'package:provider/provider.dart';
 
 /// Model data untuk satu tombol aksi pada halaman utama.
 class ItemHomepage {
@@ -20,9 +24,11 @@ class ItemHomepage {
 /// Kartu tombol aksi yang dirender dari sebuah [ItemHomepage].
 ///
 /// Kartu diberi warna latar [ItemHomepage.color]. Ketika ditekan, kartu
-/// menampilkan SnackBar berisi "Kamu telah menekan tombol [nama]!" dan,
-/// untuk tombol yang memiliki halaman tujuan, berpindah ke halaman tersebut
-/// (lihat [_destinationFor]).
+/// menampilkan SnackBar lalu menjalankan aksinya:
+/// - "Lihat Proyek" membuka daftar proyek (publik, tanpa login).
+/// - "Tambah Proyek" dilindungi [ensureLoggedIn] sebelum membuka form.
+/// - "Tambah Edukasi" membuka form edukasi.
+/// - "Logout" mencabut token lewat [AuthState.logout].
 class ItemCard extends StatelessWidget {
   /// Data tombol yang ditampilkan oleh kartu ini.
   final ItemHomepage item;
@@ -30,16 +36,49 @@ class ItemCard extends StatelessWidget {
   /// Membuat [ItemCard] dari [item].
   const ItemCard(this.item, {super.key});
 
-  /// Mengembalikan halaman tujuan untuk [name], atau `null` jika tombol
-  /// tersebut belum memiliki halaman (misalnya "Lihat Proyek" dan "Logout").
-  static Widget? _destinationFor(String name) {
-    switch (name) {
+  static void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _onTap(BuildContext context) async {
+    switch (item.name) {
+      case "Logout":
+        final auth = context.read<AuthState>();
+        if (!auth.isLoggedIn) {
+          _showSnackBar(context, "Kamu belum login.");
+          return;
+        }
+        await auth.logout();
+        if (!context.mounted) return;
+        _showSnackBar(context, "Berhasil logout.");
+        return;
       case "Tambah Proyek":
-        return const ProjectFormPage();
+        _showSnackBar(context, "Kamu telah menekan tombol ${item.name}!");
+        // Form tambah proyek hanya dapat dibuka setelah login.
+        if (!await ensureLoggedIn(context) || !context.mounted) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ProjectFormPage()),
+        );
+        return;
+      case "Lihat Proyek":
+        _showSnackBar(context, "Kamu telah menekan tombol ${item.name}!");
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ProjectListPage()),
+        );
+        return;
       case "Tambah Edukasi":
-        return const EducationFormPage();
+        _showSnackBar(context, "Kamu telah menekan tombol ${item.name}!");
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const EducationFormPage()),
+        );
+        return;
       default:
-        return null;
+        _showSnackBar(context, "Kamu telah menekan tombol ${item.name}!");
     }
   }
 
@@ -50,36 +89,14 @@ class ItemCard extends StatelessWidget {
       color: item.color,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
-        // Aksi ketika kartu ditekan oleh pengguna.
-        onTap: () {
-          // Menampilkan SnackBar dengan pesan interaktif.
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              SnackBar(content: Text("Kamu telah menekan tombol ${item.name}!")),
-            );
-
-          // Navigasi ke halaman yang sesuai. push() dipakai agar pengguna
-          // dapat kembali ke menu dengan tombol Back.
-          final destination = _destinationFor(item.name);
-          if (destination != null) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => destination),
-            );
-          }
-        },
+        onTap: () => _onTap(context),
         child: Container(
           padding: const EdgeInsets.all(8),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  item.icon,
-                  color: Colors.white,
-                  size: 30.0,
-                ),
+                Icon(item.icon, color: Colors.white, size: 30.0),
                 const Padding(padding: EdgeInsets.all(3)),
                 Text(
                   item.name,

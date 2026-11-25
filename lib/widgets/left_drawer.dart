@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/screens/education_form.dart';
 import 'package:myportofolio_mobile/screens/menu.dart';
+import 'package:myportofolio_mobile/screens/login.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
+import 'package:myportofolio_mobile/screens/project_list.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
+import 'package:myportofolio_mobile/widgets/auth_guard.dart';
+import 'package:provider/provider.dart';
 
 /// Drawer navigasi yang muncul dari sisi kiri layar.
 ///
@@ -10,20 +15,23 @@ import 'package:myportofolio_mobile/screens/project_form.dart';
 /// tambah edukasi ([EducationFormPage]). Drawer yang sama dipakai di semua
 /// halaman tersebut agar navigasi konsisten.
 ///
-/// Setiap opsi memakai [Navigator.pushReplacement] sehingga halaman saat ini
-/// diganti dan tumpukan navigasi tidak terus bertambah.
+/// Setiap opsi navigasi memakai [Navigator.pushReplacement] sehingga halaman
+/// saat ini diganti dan tumpukan navigasi tidak terus bertambah. Opsi
+/// "Add Project" dilindungi [ensureLoggedIn], dan opsi Login/Logout
+/// berganti sesuai [AuthState.isLoggedIn].
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // watch() membuat drawer dibangun ulang saat status login berubah.
+    final isLoggedIn = context.watch<AuthState>().isLoggedIn;
+
     return Drawer(
       child: ListView(
         children: [
           const DrawerHeader(
-            decoration: BoxDecoration(
-              color: Colors.indigo,
-            ),
+            decoration: BoxDecoration(color: Colors.indigo),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -38,10 +46,7 @@ class LeftDrawer extends StatelessWidget {
                 SizedBox(height: 10),
                 Text(
                   'Explore personal projects and experiences!',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.white,
-                  ),
+                  style: TextStyle(fontSize: 15, color: Colors.white),
                 ),
               ],
             ),
@@ -53,8 +58,19 @@ class LeftDrawer extends StatelessWidget {
             onTap: () {
               Navigator.pushReplacement(
                 context,
+                MaterialPageRoute(builder: (context) => MyHomePage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.folder_outlined),
+            title: const Text('Projects'),
+            // Navigasi ke daftar proyek (publik, tanpa login)
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
                 MaterialPageRoute(
-                  builder: (context) => MyHomePage(),
+                  builder: (context) => const ProjectListPage(),
                 ),
               );
             },
@@ -62,8 +78,9 @@ class LeftDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.add_circle_outline),
             title: const Text('Add Project'),
-            // Navigasi ke halaman tambah proyek
-            onTap: () {
+            // Navigasi ke halaman tambah proyek; wajib login terlebih dahulu.
+            onTap: () async {
+              if (!await ensureLoggedIn(context) || !context.mounted) return;
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
@@ -85,6 +102,34 @@ class LeftDrawer extends StatelessWidget {
               );
             },
           ),
+          const Divider(),
+          if (!isLoggedIn)
+            ListTile(
+              leading: const Icon(Icons.login),
+              title: const Text('Login'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                );
+              },
+            )
+          else
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Logout'),
+              onTap: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                final auth = context.read<AuthState>();
+                Navigator.pop(context); // tutup drawer
+                await auth.logout();
+                messenger
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    const SnackBar(content: Text('Berhasil logout.')),
+                  );
+              },
+            ),
         ],
       ),
     );

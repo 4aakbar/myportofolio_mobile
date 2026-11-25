@@ -167,7 +167,11 @@ class _EducationFormPageState extends State<EducationFormPage> {
   }
 
   /// Dekorasi input yang seragam untuk semua field formulir.
-  InputDecoration _inputDecoration(String label, {String? hint, Widget? suffix}) {
+  InputDecoration _inputDecoration(
+    String label, {
+    String? hint,
+    Widget? suffix,
+  }) {
     return InputDecoration(
       labelText: label,
       hintText: hint ?? label,
@@ -175,9 +179,7 @@ class _EducationFormPageState extends State<EducationFormPage> {
       // Pesan kesalahan boleh dua baris agar tidak terpotong pada
       // field tanggal yang lebarnya hanya setengah layar.
       errorMaxLines: 2,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(5.0),
-      ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
     );
   }
 
@@ -185,11 +187,7 @@ class _EducationFormPageState extends State<EducationFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Center(
-          child: Text(
-            'Add Education Form',
-          ),
-        ),
+        title: const Center(child: Text('Add Education Form')),
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
       ),
@@ -230,10 +228,10 @@ class _EducationFormPageState extends State<EducationFormPage> {
                   decoration: _inputDecoration("Jenjang Pendidikan"),
                   initialValue: _level,
                   items: _levels
-                      .map((level) => DropdownMenuItem(
-                            value: level,
-                            child: Text(level),
-                          ))
+                      .map(
+                        (level) =>
+                            DropdownMenuItem(value: level, child: Text(level)),
+                      )
                       .toList(),
                   onChanged: (String? newValue) {
                     setState(() {
@@ -325,8 +323,7 @@ class _EducationFormPageState extends State<EducationFormPage> {
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton(
                     style: ButtonStyle(
-                      backgroundColor:
-                          WidgetStateProperty.all(Colors.indigo),
+                      backgroundColor: WidgetStateProperty.all(Colors.indigo),
                     ),
                     onPressed: () {
                       // Dialog ringkasan hanya tampil bila semua input valid;
